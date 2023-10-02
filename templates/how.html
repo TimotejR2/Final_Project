@@ -1,0 +1,21 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Welcome
+{% endblock %}
+
+{% block main %}
+    <h1>how</h1>
+    <select name="2">
+        <option disabled selected>Energy label</option>
+        {% for categorie in categories %}
+            <option value={{categorie.name}}>{{categorie.name}}</option>
+        {% endfor %}
+    </select>
+    <select class="form-select mx-auto w-auto" name="1">
+        <option disabled selected>Add device</option>
+        {% for device in devices %}
+            <option value="{{ device.name }}">{{ device.name }}</option>
+        {% endfor %}
+    </select>
+{% endblock %}

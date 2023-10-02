@@ -1,0 +1,52 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Welcome
+{% endblock %}
+
+{% block main %}
+    <h1>Your investment will pay off in {{years}} year{{s}}.</h1>
+    <div>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.js"></script>
+        <center><canvas id="profit" style="width:100%;max-width:600px"></canvas></center>
+        <center><canvas id="co2" style="width:100%;max-width:600px"></canvas></center>
+    
+        <script>
+            const labels = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]; 
+            val = '{{ values }}'
+            val = JSON.parse(val);
+            new Chart("profit", {
+                type: "line",
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: "Your profit in €",
+                        data: val,
+                        fill: false,
+                        borderColor: 'rgb(255, 0, 0)',
+                        tension: 0.1
+                    }]
+                },
+            });
+        </script>
+        <script>
+            const labels1 = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]; 
+            val = '{{ co2 }}'
+            val = JSON.parse(val);
+            new Chart("co2", {
+                type: "line",
+                data: {
+                    labels: labels1,
+                    datasets: [{
+                        label: "CO2 saved (kg)",
+                        data: val,
+                        fill: false,
+                        borderColor: 'rgb(255, 0, 0)',
+                        tension: 0.1
+                    }]
+                },
+            });
+        </script>
+    </div>
+    
+{% endblock %}
