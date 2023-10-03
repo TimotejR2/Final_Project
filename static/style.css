@@ -1,5 +1,16 @@
 body {  
-    background: linear-gradient(90deg, rgba(34,193,195,1) 23%, rgba(253,187,45,1) 67%); 
+    background-color: antiquewhite;
+    
+}
+.sec-color{
+    color: rgb(255, 0, 0);
+}
+.btn{
+    background-color: brown;
+    border-color:brown ;
+}
+.input{
+    background-color: blue;
 }
 h1{
     color:black;

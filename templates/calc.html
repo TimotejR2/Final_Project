@@ -17,20 +17,20 @@
                     <h2>{% if i == 1 -%} Old device {% endif -%}</h2>
                     {% if i == 0 -%}
                         <div>
-                            <input type="number" name="average"placeholder="Daily average (h)" max="24" min="1">
-                            <input type="number" name="amount"placeholder="Amount" min="1">
+                            <input type="number" class="input" name="average"placeholder="Daily average (h)" max="24" min="1">
+                            <input type="number"  class="input" name="amount"placeholder="Amount" min="1">
                         </div>
                     {% endif -%}
                     <br>
                     {% if i == 0 -%}
                         <h2>New device</h2>
                     {% endif -%}
-                    <input name="price{{i}}" type="number" placeholder="Price">
-                    <input type="number" name="watts{{i}}" placeholder="watts" min="1">
-                    <select class="form-select mx-auto w-auto" name="type{{i}}">
+                    <input name="price{{i}}" class="input" type="number" placeholder="Price">
+                    <input type="number" class="input" name="watts{{i}}" placeholder="watts" min="1">
+                    <select class="form-select mx-auto w-auto input" name="type{{i}}">
                         <option disabled selected>Type</option>
                         {% for type in types %}
-                            <option value="{{type}}">{{type}}</option>
+                            <option class="input" value="{{type}}">{{type}}</option>
                         {% endfor %}
                     </select>
                     </select>
