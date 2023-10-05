@@ -1,22 +1,6 @@
 from flask import Flask, render_template, request
 import csv
 
-devices = [
-    {"name" : "Lighting"},
-    {"name" : "Electronic displays including televisions"},
-    {"name" : "Washing machines and washer-dryers"},
-    {"name" : "Dishwashers"},
-    {"name" : "Fridges and freezers"}
-            ]
-categories = [
-    {"name" : "A"},
-    {"name" : "B"},
-    {"name" : "C"},
-    {"name" : "D"},
-    {"name" : "E"},
-    {"name" : "F"},
-    {"name" : "G"}
-        ]
 lb_names = []
 light_bulbs = []
 with open('light_bulbs.csv', newline='') as csvfile:
@@ -24,6 +8,21 @@ with open('light_bulbs.csv', newline='') as csvfile:
     for row in reader:
         light_bulbs.append(row)
         lb_names.append(row["name"])
+
+countries_co2  = {}
+countries = []
+with open('co2.csv', newline='') as csvfile:
+    reader = csv.DictReader(csvfile)
+    for row in reader:
+        countries_co2[row["Country"]] = float(row["CO2"])/1000
+kwh_prices = {}
+
+with open('kWh_price.csv', newline='') as csvfile:
+    reader = csv.DictReader(csvfile)
+    for row in reader:
+        add = {row["Code"], row["KWH_price"]}
+        kwh_prices[row["Code"]] = row["KWH_price"]
+
 app = Flask(__name__)
 
 @app.route('/')
@@ -33,7 +32,7 @@ def main():
 @app.route('/calc', methods=['POST', 'GET'])
 def calc():
     if request.method == "GET":
-        return render_template("calc.html", types=lb_names)
+        return render_template("calc.html", types=lb_names, countries=countries)
     
     if request.method == "POST":
         # Check if all fields are filled
