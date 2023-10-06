@@ -94,9 +94,6 @@ def calc():
 def about():
     return render_template("about.html")
     
-@app.route('/FAQ')
-def FAQ():
-    return render_template("FAQ.html")
 
 @app.route('/how')
 def how():

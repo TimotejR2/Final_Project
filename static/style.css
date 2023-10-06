@@ -17,3 +17,20 @@ h1{
     text-align: center;
     font-size: 70px;
  }
+ h2{
+    color:black;
+    text-align: center;
+    font-size: 50px;
+ }
+ p{
+    color:black;
+    text-align: center;
+ }
+ .box {
+    float: left;
+    width: 200px;
+    margin-left: 10px;
+    margin-top: 10px;
+    padding: 5px;
+    border: 2px solid blue;
+}
