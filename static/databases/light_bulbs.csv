@@ -1,0 +1,12 @@
+name,lifetime,watts,co2,price,lumens
+Incandescent lamp,1000,60,0.45,1.50,800
+Halogen lamp,2000,50,0.35,2.00,1000
+Compact fluorescent lamps (CFLs),10000,15,0.10,3.00,900
+LED light bulb,25000,10,0.05,4.00,1600
+Globe LED bulb,25000,12,0.06,5.00,1500
+Sodium lamp,18000,35,0.30,4.50,1900
+Corn lamp,15000,25,0.20,3.50,1200
+LED strip light,30000,8,0.04,6.00,1100
+Mercury lamp,12000,50,0.40,4.00,750
+Fluorescent lamp,8000,36,0.25,2.50,1300
+Average,14800,28.1,0.197,3.30,1300

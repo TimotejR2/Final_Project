@@ -1,9 +1,11 @@
 from flask import Flask, render_template, request
 import csv
+import math   
+
 
 lb_names = []
 light_bulbs = []
-with open('light_bulbs.csv', newline='') as csvfile:
+with open('static/databases/light_bulbs.csv', newline='') as csvfile:
     reader = csv.DictReader(csvfile)
     for row in reader:
         light_bulbs.append(row)
@@ -12,7 +14,7 @@ with open('light_bulbs.csv', newline='') as csvfile:
 countries_co2  = {}
 countries = []
 countries_codes =  {}
-with open('co2.csv', newline='') as csvfile:
+with open('static/databases/co2.csv', newline='') as csvfile:
     reader = csv.DictReader(csvfile)
     for row in reader:
         if not row["Country"] in countries:
@@ -21,7 +23,7 @@ with open('co2.csv', newline='') as csvfile:
         countries_co2[row["Country"]] = float(row["CO2"])/1000
 kwh_prices = {}
 
-with open('kWh_price.csv', newline='') as csvfile:
+with open('static/databases/kWh_price.csv', newline='') as csvfile:
     reader = csv.DictReader(csvfile)
     for row in reader:
         add = {row["Code"], row["KWH_price"]}
@@ -62,17 +64,20 @@ def calc():
             type.append(request.form.get(f"type{i}"))
         kwh_co2 = countries_co2[country]
         co2_manu = []
+        lifetime = []
         # CO2 manu for first and second lightbulb
         for j in range (2):
             for i in range (0, len(light_bulbs)):
                 if light_bulbs[i]["name"] == type[j]:
-
                     value = float(light_bulbs[i]["co2"])
+                    lifetime.append  (int(light_bulbs[i]["lifetime"]))
                     co2_manu.append(value)
                     break
+        # TODO: Handle if old lightbulb has longer lifetime
         # Values for graph profit
+        graph_limit = math.ceil(lifetime[0]/365/average)+1
         profit_values = [] 
-        for i in range (10):
+        for i in range (graph_limit):
             value  = round((price[1]+(kwh_price*amount*average*watts[1]/1000*365*i)) - (price[0]+(kwh_price*average*amount*watts[0]/1000*365*i)),2)
             profit_values.append(value)
         try:
@@ -82,11 +87,17 @@ def calc():
                 s = ""
         except ZeroDivisionError:
             years="∞"
-        co2 = [] # Co2 of new product
-        for i in range (10):
+        co2 = [] # Co2 saved
+        for i in range (graph_limit):
             value = round((watts[1]/1000*amount*average*365*i*kwh_co2+co2_manu[1])-(watts[0]/1000*amount*average*kwh_co2*365*i+co2_manu[0]),2)
             co2.append(value)
-        return render_template("resoult.html", years=years, s=s, values=profit_values, co2=co2)
+        # Quick facts
+        qf = [] # Define variable for all quick facts
+        # QF 1: Your new bulb will last qf[1] years and save a total of qf[2].
+        qf.append(round(lifetime[0]/365/average, 2))
+         # menej ako 1 (strata peňazí) +            ušetrené € za hodinu
+        qf.append (round((price[1]-price[0])+(kwh_price*((watts[1] - watts[0])/1000)*lifetime[0]),2))
+        return render_template("resoult.html", years=years, s=s, values=profit_values, co2=co2, qf = qf, limit=graph_limit)
 
 
 
