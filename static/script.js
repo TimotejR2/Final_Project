@@ -19,3 +19,17 @@ if (clicked === 0){
         clicked = 0;
     }
 }
+/*FIXME:   
+window.onload = function(){
+    addEventListener('scroll', function() {
+        var Y = window.scrollY;
+        if (Y < 100){
+            console.log(Y);
+            window.scrollTo({
+                top: 100,
+                behavior: "instant",
+            });
+        }
+    });
+}
+*/
