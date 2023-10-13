@@ -19,17 +19,35 @@ if (clicked === 0){
         clicked = 0;
     }
 }
-/*FIXME:   
+
+
+
 window.onload = function(){
-    addEventListener('scroll', function() {
+    if (isMobile() == false){
+
         var Y = window.scrollY;
-        if (Y < 100){
-            console.log(Y);
-            window.scrollTo({
-                top: 100,
-                behavior: "instant",
-            });
-        }
+        addEventListener('scroll', function() {
+            
+            if (Y == 0){
+                try {
+                    window.scrollTo({ top: 100, behavior: "instant" });
+                    if (window.scrollY != 100) throw "instant not supported";
+                } catch {
+                    window.scrollTo({ top: 100, behavior: "auto" });
+                }
+            }
+            Y = window.scrollY;
     });
+    }
 }
-*/
+
+function isMobile(){
+    console.log("start")
+    if (/Android|webOS|iPhone|iPad|iPod|BlackBerry/i.test(navigator.userAgent) ||
+       (/Android|webOS|iPhone|iPad|iPod|BlackBerry/i.test(navigator.platform))) {
+        console.log("true")
+        return true;
+    }
+        console.log("false")
+        return false;
+    }

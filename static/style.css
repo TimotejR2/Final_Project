@@ -33,7 +33,7 @@ h1{
     background-position: center;
     background-size: cover;
     position: relative;
-    height: 800px;
+    height: 100vh;
 }
 .hero_text {
     text-align: center;
@@ -41,7 +41,7 @@ h1{
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    color: black;
+    color: white;
   }
   .hero_button {
     background-image: linear-gradient(to right,rgb(255,196,12), rgb(255, 150, 12)); 
