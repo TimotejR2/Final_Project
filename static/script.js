@@ -23,31 +23,24 @@ if (clicked === 0){
 
 
 window.onload = function(){
-    if (isMobile() == false){
-
-        var Y = window.scrollY;
-        addEventListener('scroll', function() {
-            
-            if (Y == 0){
-                try {
-                    window.scrollTo({ top: 100, behavior: "instant" });
-                    if (window.scrollY != 100) throw "instant not supported";
-                } catch {
-                    window.scrollTo({ top: 100, behavior: "auto" });
+var top = 1;
+    addEventListener('scroll', function() {
+        console.log("scroll")
+        if (top == 1){
+            document.getElementById("header").style.display = 'none';
+            setTimeout(() => {window.scrollTo({top: 1, behavior: "smooth",});},"100");
+            top = 2; //2 means header was hided right now
+            setTimeout(() => {
+                top = 0;
+            }, "1000");
+        }
+        else{
+            if (top == 0){
+                if (0 == window.scrollY){
+                    document.getElementById("header").style.display = 'block';
+                    top = 1;
                 }
             }
-            Y = window.scrollY;
+        }
     });
-    }
 }
-
-function isMobile(){
-    console.log("start")
-    if (/Android|webOS|iPhone|iPad|iPod|BlackBerry/i.test(navigator.userAgent) ||
-       (/Android|webOS|iPhone|iPad|iPod|BlackBerry/i.test(navigator.platform))) {
-        console.log("true")
-        return true;
-    }
-        console.log("false")
-        return false;
-    }

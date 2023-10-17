@@ -41,7 +41,6 @@ h1{
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    color: white;
   }
   .hero_button {
     background-image: linear-gradient(to right,rgb(255,196,12), rgb(255, 150, 12)); 
@@ -54,4 +53,17 @@ h1{
     font-size: 25px;
     font-weight: bold;
     border-radius: 12px;
+  }
+
+@media (orientation: portrait) {
+    #special-text {
+      font-size: 50px; 
+    }
+  }
+  
+
+  @media (orientation: landscape) {
+    #special-text {
+        font-size: 8vw;
+    }
   }
