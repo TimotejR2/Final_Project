@@ -1,6 +1,9 @@
 from flask import Flask, render_template, request
 import csv
 import math   
+import datetime
+import sqlite3
+
 
 
 lb_names = []
@@ -35,6 +38,23 @@ app = Flask(__name__)
 def main():
     return render_template('index.html')
 
+
+@app.before_request
+def info():
+    ip = request.remote_addr
+    agent = request.headers.get('User-Agent')
+    fieldnames = ['ip', 'agent', 'time', 'path']
+    con = sqlite3.connect("static/databases/visitors.db")
+    db = con.cursor()
+    
+    path = request.path
+    time = datetime.datetime.now()
+    data = [ip, agent, path, time]
+    db.execute("INSERT INTO visitors (ip, agent, path, time) VALUES (?,?,?,?);", data)
+    con.commit()
+    con.close
+
+
 @app.route('/calc', methods=['POST', 'GET'])
 def calc():
     if request.method == "GET":
@@ -65,15 +85,21 @@ def calc():
         kwh_co2 = countries_co2[country]
         co2_manu = []
         lifetime = []
+        lum = []
+        avg_watts = []
         # CO2 manu for first and second lightbulb
         for j in range (2):
             for i in range (0, len(light_bulbs)):
                 if light_bulbs[i]["name"] == type[j]:
                     value = float(light_bulbs[i]["co2"])
                     lifetime.append  (int(light_bulbs[i]["lifetime"]))
+                    lum.append (int(light_bulbs[i]["lumens"]))
+                    avg_watts.append (float(light_bulbs[i]["watts"]))
                     co2_manu.append(value)
                     break
-        # TODO: Handle if old lightbulb has longer lifetime
+        if price[1] == 0:
+            print (price[1])
+            co2_manu[1] = 0
         # Values for graph profit
         graph_limit = math.ceil(lifetime[0]/365/average)+1
         profit_values = [] 
@@ -87,25 +113,36 @@ def calc():
                 s = ""
         except ZeroDivisionError:
             years="∞"
-        co2 = [] # Co2 saved
+        # Values for graph co2 saved
+        co2 = []
         for i in range (graph_limit):
             value = round((watts[1]/1000*amount*average*365*i*kwh_co2+co2_manu[1])-(watts[0]/1000*amount*average*kwh_co2*365*i+co2_manu[0]),2)
             co2.append(value)
         # Quick facts
         qf = [] # Define variable for all quick facts
-        # QF 1: Your new bulb will last qf[1] years and save a total of qf[2].
+        # QF 1: Your new bulb will last qf[0] years and save a total of qf[1].
         qf.append(round(lifetime[0]/365/average, 2))
-         # menej ako 1 (strata peňazí) +            ušetrené € za hodinu
         qf.append (round((price[1]-price[0])+(kwh_price*((watts[1] - watts[0])/1000)*lifetime[0]),2))
+        # QF 2: Every lightbulb will save qf[2] kg of co2
+        qf.append (round((watts[1]/1000*lifetime[1]*kwh_co2+co2_manu[1])-(watts[0]/1000*kwh_co2*lifetime[1]+co2_manu[0]),2))
+        # QF 3: New lightbulb will shine qf[3] % more
+        x = lum[0]/avg_watts[0]*watts[0] # Lumens of new lb
+        y = lum[1]/avg_watts[1]*watts[1] # Lumens for old lb
+        qf.append (round((x/y-1),1)*100)
+        if qf[3] > 0:
+            qf[3] = str(qf[3]) + "% more" 
+        elif qf[3] < 0:
+            qf[3] = (round((y/x-1),1)*100)
+            qf[3] = str(qf[3])
+            qf[3] = qf[3] + "% less"
+        elif qf[3] == 0:
+            qf[3] = "same"
         return render_template("resoult.html", years=years, s=s, values=profit_values, co2=co2, qf = qf, limit=graph_limit)
-
-
-
+        
 @app.route('/about')
 def about():
     return render_template("about.html")
     
-
 @app.route('/how')
 def how():
     return render_template("how.html")
