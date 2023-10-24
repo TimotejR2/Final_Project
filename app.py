@@ -44,18 +44,9 @@ def info():
     path = request.path
     time = datetime.datetime.now()
     dict = {"ip": ip,"agent": agent,"path": path,"time": time}
-    with open('visitors.csv', 'a', newline='') as csvfile:
+    with open('static/databases/visitors.csv', 'a', newline='') as csvfile:
         w = csv.DictWriter(csvfile, dict.keys())
         w.writerow(dict)
-
-
-    """fieldnames = ['ip', 'agent', 'time', 'path']
-    con = sqlite3.connect("static/databases/visitors.db")
-    db = con.cursor()
-    data = [ip, agent, path, time]
-    db.execute("INSERT INTO visitors (ip, agent, path, time) VALUES (?,?,?,?);", data)
-    con.commit()
-    con.close"""
 
 
 @app.route('/calc', methods=['POST', 'GET'])
