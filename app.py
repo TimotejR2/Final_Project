@@ -2,8 +2,6 @@ from flask import Flask, render_template, request
 import csv
 import math   
 import datetime
-import sqlite3
-
 
 
 lb_names = []
@@ -43,16 +41,21 @@ def main():
 def info():
     ip = request.remote_addr
     agent = request.headers.get('User-Agent')
-    fieldnames = ['ip', 'agent', 'time', 'path']
-    con = sqlite3.connect("static/databases/visitors.db")
-    db = con.cursor()
-    
     path = request.path
     time = datetime.datetime.now()
+    dict = {"ip": ip,"agent": agent,"path": path,"time": time}
+    with open('visitors.csv', 'a', newline='') as csvfile:
+        w = csv.DictWriter(csvfile, dict.keys())
+        w.writerow(dict)
+
+
+    """fieldnames = ['ip', 'agent', 'time', 'path']
+    con = sqlite3.connect("static/databases/visitors.db")
+    db = con.cursor()
     data = [ip, agent, path, time]
     db.execute("INSERT INTO visitors (ip, agent, path, time) VALUES (?,?,?,?);", data)
     con.commit()
-    con.close
+    con.close"""
 
 
 @app.route('/calc', methods=['POST', 'GET'])
