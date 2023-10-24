@@ -15,7 +15,7 @@ with open('static/databases/light_bulbs.csv', newline='') as csvfile:
 countries_co2  = {}
 countries = []
 countries_codes =  {}
-with open('static/databases/co2.csv', newline='') as csvfile:
+with open('tmp/co2.csv', newline='') as csvfile:
     reader = csv.DictReader(csvfile)
     for row in reader:
         if not row["Country"] in countries:
