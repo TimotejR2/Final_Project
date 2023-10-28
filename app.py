@@ -1,7 +1,7 @@
 from flask import Flask, render_template, request
 import csv
 import math   
-import datetime
+"import datetime"
 
 
 lb_names = []
@@ -15,7 +15,7 @@ with open('static/databases/light_bulbs.csv', newline='') as csvfile:
 countries_co2  = {}
 countries = []
 countries_codes =  {}
-with open('tmp/co2.csv', newline='') as csvfile:
+with open('static/databases/co2.csv', newline='') as csvfile:
     reader = csv.DictReader(csvfile)
     for row in reader:
         if not row["Country"] in countries:
@@ -37,16 +37,16 @@ def main():
     return render_template('index.html')
 
 
-@app.before_request
+"""@app.before_request
 def info():
     ip = request.remote_addr
     agent = request.headers.get('User-Agent')
     path = request.path
     time = datetime.datetime.now()
     dict = {"ip": ip,"agent": agent,"path": path,"time": time}
-    with open('static/databases/visitors.csv', 'a', newline='') as csvfile:
+    with open('tmp/visitors.csv', 'a', newline='') as csvfile:
         w = csv.DictWriter(csvfile, dict.keys())
-        w.writerow(dict)
+        w.writerow(dict)"""
 
 
 @app.route('/calc', methods=['POST', 'GET'])
@@ -92,7 +92,6 @@ def calc():
                     co2_manu.append(value)
                     break
         if price[1] == 0:
-            print (price[1])
             co2_manu[1] = 0
         # Values for graph profit
         graph_limit = math.ceil(lifetime[0]/365/average)+1
@@ -100,36 +99,76 @@ def calc():
         for i in range (graph_limit):
             value  = round((price[1]+(kwh_price*amount*average*watts[1]/1000*365*i)) - (price[0]+(kwh_price*average*amount*watts[0]/1000*365*i)),2)
             profit_values.append(value)
-        try:
-            
-            years = round((price[0] - price[1])/(kwh_price*(watts[1] - watts[0])/1000*365*amount*average), 2)
-            if years < 1:
-                s = ""
-        except ZeroDivisionError:
-            years="∞"
+        if ((price[1]+(kwh_price*amount*average*watts[1]/1000*365*(lifetime[0]/365/average))) - (price[0]+(kwh_price*average*amount*watts[0]/1000*365*(lifetime[0]/365/average)))) <= 0:
+            return render_template ("error.html", error = "You will not save any money")
+        years = round((price[0] - price[1])/(kwh_price*(watts[1] - watts[0])/1000*365*amount*average), 2)
+        if years < 1:
+            s = ""
+    
         # Values for graph co2 saved
-        co2 = []
+        co2 = []          
+        co2year1 = watts[1]/1000*amount*average*365*kwh_co2
+        co2year0 = watts[0]/1000*amount*average*365*kwh_co2
         for i in range (graph_limit):
-            value = round((watts[1]/1000*amount*average*365*i*kwh_co2+co2_manu[1])-(watts[0]/1000*amount*average*kwh_co2*365*i+co2_manu[0]),2)
+            value = round(((co2year1*i+co2_manu[1]) - (co2year0*i+co2_manu[0])),2)
             co2.append(value)
         # Quick facts
         qf = [] # Define variable for all quick facts
-        # QF 1: Your new bulb will last qf[0] years and save a total of qf[1].
+        # QF 1: Your new bulb will last qf[0] and save a total of qf[1].
         qf.append(round(lifetime[0]/365/average, 2))
+        if qf[0] == 1:
+            qf[0] = "one year"
+        elif qf[0] < 1:
+            qf[0] = "less than one year"
+        elif qf[0] > 1 and qf[0] < 2:
+            qf[0] = "more than one year"
+        else:
+            qf[0] = str(qf[0]) + "years"
         qf.append (round((price[1]-price[0])+(kwh_price*((watts[1] - watts[0])/1000)*lifetime[0]),2))
+
+
         # QF 2: Every lightbulb will save qf[2] kg of co2
-        qf.append (round((watts[1]/1000*lifetime[1]*kwh_co2+co2_manu[1])-(watts[0]/1000*kwh_co2*lifetime[1]+co2_manu[0]),2))
+        rozdiel = (watts[1]/1000*kwh_co2*lifetime[0]+co2_manu[1]) - (watts[0]/1000*kwh_co2*lifetime[0]+co2_manu[0])
+        qf.append (round( rozdiel,1))
+        #value = round((watts[1]/1000*amount*average*365*i*kwh_co2+co2_manu[1])-(watts[0]/1000*amount*average*kwh_co2*365*i+co2_manu[0]),2)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
         # QF 3: New lightbulb will shine qf[3] % more
-        x = lum[0]/avg_watts[0]*watts[0] # Lumens of new lb
-        y = lum[1]/avg_watts[1]*watts[1] # Lumens for old lb
-        qf.append (round((x/y-1),1)*100)
-        if qf[3] > 0:
+        x = lum[0]/avg_watts[0]*watts[0] # Lumens of new lb   
+        y = lum[1]/avg_watts[1]*watts[1] # Lumens for old lb 
+        qf.append(".")
+        if x > y:
+            qf[3] = round((x/y-1),1)*100
             qf[3] = str(qf[3]) + "% more" 
-        elif qf[3] < 0:
-            qf[3] = (round((y/x-1),1)*100)
+        elif y > x:
+            qf[3] = (round(((y-x)/y),2)*100)
+            i = 1
+            while qf[3] == 100 or qf[3] == 0: #Fix 100% and 0% bug
+                qf[3] = (round(((y-x)/y),i)*100)
+                i = i+1
             qf[3] = str(qf[3])
             qf[3] = qf[3] + "% less"
-        elif qf[3] == 0:
+        elif x == y:
             qf[3] = "same"
         return render_template("resoult.html", years=years, s=s, values=profit_values, co2=co2, qf = qf, limit=graph_limit)
         
