@@ -1,53 +1,59 @@
 from flask import Flask, render_template, request
-import csv
 import math   
-"import datetime"
+import sqlite3
 
+# Read data from database
+con = sqlite3.connect("static/data.db")
+db = con.cursor()
 
+# Read names of light bulbs to memory
+db.execute("SELECT name FROM light_bulbs;")
+results = db.fetchall()
 lb_names = []
+i = 0
+for i in range(len(results) - 1):
+    row = str(results[i+1])
+    lb_names.append(row[2:-3])
+    i = i + 1
+
+db.execute("SELECT * FROM light_bulbs;")
+results = db.fetchall()
 light_bulbs = []
-with open('static/databases/light_bulbs.csv', newline='') as csvfile:
-    reader = csv.DictReader(csvfile)
-    for row in reader:
-        light_bulbs.append(row)
-        lb_names.append(row["name"])
+for i in range(len(results) - 1):
+    row = str(results[i+1]) # Convert to text
+    row = row[1:-3]
+    row = row.split(", ") # Chainge to array
+    row[0] = row [0][1:-1]
+    for j in range (1,6): # Convert numeric data to float, possible to optimalise memory usage by useing int in some cases
+        row[j] = float(row[j])
+    dic = {"name": row[0], "lifetime": row[1], "watts": row[2], "co2": row[3], "price": row[4], "lumens": row[5]}
+    light_bulbs.append(dic)
 
 countries_co2  = {}
 countries = []
 countries_codes =  {}
-with open('static/databases/co2.csv', newline='') as csvfile:
-    reader = csv.DictReader(csvfile)
-    for row in reader:
-        if not row["Country"] in countries:
-            countries.append(row["Country"])
-            countries_codes[row["Country"]] = row["Code"]
-        countries_co2[row["Country"]] = float(row["CO2"])/1000
-kwh_prices = {}
+db.execute("SELECT * FROM co2;")
+results = db.fetchall()
+for i in range(len(results) - 1):
+    countries.append (results[i][0]) # Name of country
+    countries_codes[results[i][0]] = results[i][1]
+    countries_co2[results[i][0]] = results[i][3]
 
-with open('static/databases/kWh_price.csv', newline='') as csvfile:
-    reader = csv.DictReader(csvfile)
-    for row in reader:
-        add = {row["Code"], row["KWH_price"]}
-        kwh_prices[row["Code"]] = float(row["KWH_price"])
+db.execute("SELECT * FROM price;")
+kwh_prices = {}
+results = db.fetchall()
+for i in range(len(results) - 1):
+    kwh_prices[results[i][0]] = results[i][1]
+
+con.commit()
+con.close
+del con, db, results, dic, row
 
 app = Flask(__name__)
 
 @app.route('/')
-def main():
+def index():
     return render_template('index.html')
-
-
-"""@app.before_request
-def info():
-    ip = request.remote_addr
-    agent = request.headers.get('User-Agent')
-    path = request.path
-    time = datetime.datetime.now()
-    dict = {"ip": ip,"agent": agent,"path": path,"time": time}
-    with open('tmp/visitors.csv', 'a', newline='') as csvfile:
-        w = csv.DictWriter(csvfile, dict.keys())
-        w.writerow(dict)"""
-
 
 @app.route('/calc', methods=['POST', 'GET'])
 def calc():
@@ -62,7 +68,7 @@ def calc():
         # Def variables
         s = "s" # If its one year or more years
         country = request.form.get("country")
-        try:
+        try: # Try if country is in databases of 
             kwh_price = kwh_prices[countries_codes[country]]
         except KeyError:
             kwh_price = 0.15
@@ -76,7 +82,7 @@ def calc():
             watts.append(int(request.form.get(f"watts{i}")))
             price.append(int(request.form.get(f"price{i}")))
             type.append(request.form.get(f"type{i}"))
-        kwh_co2 = countries_co2[country]
+        kwh_co2 = countries_co2[country]/1000
         co2_manu = []
         lifetime = []
         lum = []
@@ -106,7 +112,7 @@ def calc():
             s = ""
     
         # Values for graph co2 saved
-        co2 = []          
+        co2 = []
         co2year1 = watts[1]/1000*amount*average*365*kwh_co2
         co2year0 = watts[0]/1000*amount*average*365*kwh_co2
         for i in range (graph_limit):
@@ -126,50 +132,31 @@ def calc():
             qf[0] = str(qf[0]) + "years"
         qf.append (round((price[1]-price[0])+(kwh_price*((watts[1] - watts[0])/1000)*lifetime[0]),2))
 
-
         # QF 2: Every lightbulb will save qf[2] kg of co2
         rozdiel = (watts[1]/1000*kwh_co2*lifetime[0]+co2_manu[1]) - (watts[0]/1000*kwh_co2*lifetime[0]+co2_manu[0])
         qf.append (round( rozdiel,1))
-        #value = round((watts[1]/1000*amount*average*365*i*kwh_co2+co2_manu[1])-(watts[0]/1000*amount*average*kwh_co2*365*i+co2_manu[0]),2)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
         # QF 3: New lightbulb will shine qf[3] % more
         x = lum[0]/avg_watts[0]*watts[0] # Lumens of new lb   
         y = lum[1]/avg_watts[1]*watts[1] # Lumens for old lb 
         qf.append(".")
         if x > y:
-            qf[3] = round((x/y-1),1)*100
+            qf[3] = round(round((x/y-1),1)*100)
             qf[3] = str(qf[3]) + "% more" 
         elif y > x:
-            qf[3] = (round(((y-x)/y),2)*100)
+            
+            qf[3] = round((round(((y-x)/y),2)*100),1) # Fix n.0001 bug
             i = 1
             while qf[3] == 100 or qf[3] == 0: #Fix 100% and 0% bug
-                qf[3] = (round(((y-x)/y),i)*100)
+                qf[3] = round(((y-x)/y),i)*100
                 i = i+1
+                if i > 10: # Remove chaince of creating infinite loop
+                    break
             qf[3] = str(qf[3])
             qf[3] = qf[3] + "% less"
         elif x == y:
             qf[3] = "same"
+        del variables,country, average, amount, watts, price, type, kwh_co2, co2_manu, lifetime, lum, avg_watts, value, co2year1, co2year0, rozdiel, x, y
         return render_template("resoult.html", years=years, s=s, values=profit_values, co2=co2, qf = qf, limit=graph_limit)
         
 @app.route('/about')
