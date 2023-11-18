@@ -123,13 +123,13 @@ def calc():
         # QF 1: Your new bulb will last qf[0] and save a total of qf[1].
         qf.append(round(lifetime[0]/365/average, 2))
         if qf[0] == 1:
-            qf[0] = "one year"
+            qf[0] = " one year"
         elif qf[0] < 1:
-            qf[0] = "less than one year"
+            qf[0] = " less than one year"
         elif qf[0] > 1 and qf[0] < 2:
-            qf[0] = "more than one year"
+            qf[0] = " more than one year"
         else:
-            qf[0] = str(qf[0]) + "years"
+            qf[0] = str(qf[0]) + " years"
         qf.append (round((price[1]-price[0])+(kwh_price*((watts[1] - watts[0])/1000)*lifetime[0]),2))
 
         # QF 2: Every lightbulb will save qf[2] kg of co2
