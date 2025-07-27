@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, send_from_directory
 import math   
 import sqlite3
 
@@ -166,3 +166,7 @@ def about():
 @app.route('/how')
 def how():
     return render_template("how.html")
+
+@app.route("/google523520862de57d5a.html")
+def google_verification():
+    return send_from_directory("static", "google523520862de57d5a.html")
